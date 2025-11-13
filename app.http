@@ -1,0 +1,88 @@
+###
+GET http://localhost:3001/mentors-details
+
+###
+POST http://localhost:3001/add-mentor
+Content-Type: application/json
+
+{
+  "username":"Charan",
+  "name":"Meda Sree Ram Charan",
+  "phone": "+91 9989550883",
+  "Photo":"https://photo Id",
+  "expertise":"Java, Python, SQL",
+  "experience": 3,
+  "bio":"Ready to Help you 24/7",
+  "linkedIn":"https://linkedin"
+} 
+
+
+###
+GET http://localhost:3001/coding-questions
+
+
+###
+POST http://localhost:3001/add-coding-question
+Content-Type: application/json
+
+{
+  "name": "Prime Numbers",
+  "difficulty": "Medium",
+  "link":"http://hackerrank/38473483"
+}
+
+
+###
+GET http://localhost:3001/jobs
+
+###
+POST http://localhost:3001/add-jobs
+Content-Type: application/json
+
+{
+  "id":"1234",
+  "company":"Zepto",
+  "role":"Picker",
+  "link":"Manager",
+  "ctc":"5 LPA",
+  "description":"Work on the Store",
+  "technologies":"JAva",
+  "location":"Madiwala",
+  "last_date":"76=038"
+}
+
+###
+delete http://localhost:3001/delete-jobs/1234
+
+###
+GET http://localhost:3001/users
+
+
+###
+POST http://localhost:3001/add-users
+Content-Type: application/json
+
+{
+  "username":"mallesh143",
+  "password":"Mallesh@2004",
+  "mentor_username":"Charan"
+}
+
+###
+GET http://localhost:3001/user-details
+
+###
+POST http://localhost:3001/update-user-details
+Content-Type: application/json
+
+{
+  "username":"mallesh143",
+  "full_name":"Venkata siva giridhar kumar",
+  "address":"Badvel Andhra Pradesh",
+  "phone":"+91 9652530489",
+  "photo":"https://local",
+  "highest_study":"B tech",
+  "college":"Siddharth Institute Of Engineering",
+  "graduation_year":"2025",
+  "expertise":"Java, Python"
+}
