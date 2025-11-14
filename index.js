@@ -61,8 +61,17 @@ app.post("/add-mentor", async (req, res) => {
   }
 });
 
-
 app.get("/coding-questions", async (req, res) => {
+  try {
+    const sqlQuery = `SELECT * FROM coding_questions;`;
+    const data = await db.all(sqlQuery);
+    res.send(data);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.get("/frontend-coding-questions", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM coding_questions;`;
     const data = await db.all(sqlQuery);
@@ -90,8 +99,17 @@ app.post("/add-coding-question", async (req, res) => {
   }
 });
 
-
 app.get("/jobs", async (req, res) => {
+  try {
+    const sqlQuery = `SELECT * FROM jobs;`;
+    const data = await db.all(sqlQuery);
+    res.send(data);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.get("/frontend-jobs", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM jobs;`;
     const data = await db.all(sqlQuery);
@@ -138,7 +156,6 @@ app.delete("/delete-jobs/:id", async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 app.get("/users", async (req, res) => {
   try {
@@ -194,7 +211,6 @@ app.post("/add-users", async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 app.get("/user-details", async (req, res) => {
   try {

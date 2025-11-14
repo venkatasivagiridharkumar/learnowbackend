@@ -22,6 +22,10 @@ GET http://localhost:3001/coding-questions
 
 
 ###
+GET http://localhost:3001/frontend-coding-questions
+
+
+###
 POST http://localhost:3001/add-coding-question
 Content-Type: application/json
 
@@ -32,8 +36,14 @@ Content-Type: application/json
 }
 
 
+
 ###
 GET http://localhost:3001/jobs
+
+
+###
+GET http://localhost:3001/frontend-jobs
+
 
 ###
 POST http://localhost:3001/add-jobs
