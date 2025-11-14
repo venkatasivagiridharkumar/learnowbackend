@@ -63,7 +63,7 @@ POST http://localhost:3001/add-users
 Content-Type: application/json
 
 {
-  "username":"mallesh143",
+  "username":"mal143",
   "password":"Mallesh@2004",
   "mentor_username":"Charan"
 }
