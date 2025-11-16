@@ -252,13 +252,13 @@ app.post("/login", async (req, res) => {
     const payLoad = { username };
     const jwtToken = jwt.sign(payLoad, "Learnow Tech");
 
-    // ✅ Send JSON with token
-    return res.status(200).json({ token: jwtToken });
+    return res.status(200).json({ token: jwtToken });  // ✅ JSON response
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 
 
 
