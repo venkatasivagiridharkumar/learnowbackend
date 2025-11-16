@@ -233,34 +233,41 @@ app.post("/add-users", async (req, res) => {
 });
 
 
-app.post("/login",async (req,res)=>{
-    try{
-      const {username,password}=req.body;
-      const checkUserQuery=`select* from user where username=?;`;
-      const user=await db.get(checkUserQuery,[username]);
-      if (user===undefined){
-        res.send("User Does Not Exists.")
-      }
-      else{
-        const passwordCheck=await bcrypt.compare(password,user.password)
-        if (passwordCheck){
-            const payLoad={username:username}
-            const jwtToken=jwt.sign(payLoad,"Learnow Tech");
-            res.send(jwtToken)
-        }
-        else{
-          res.send("invalid Password.")
-        }
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const checkUserQuery = `SELECT * FROM user WHERE username = ?;`;
+    const user = await db.get(checkUserQuery, [username]);
 
-      }
-
-    }
-    catch(err){
-        res.send({message:err.message}) 
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User does not exist" });
     }
 
+    const passwordCheck = await bcrypt.compare(password, user.password);
 
-})
+    if (!passwordCheck) {
+      return res
+        .status(401)
+        .json({ message: "Invalid password" });
+    }
+
+    const payload = { username };
+    const jwtToken = jwt.sign(payload, "Learnow Tech");
+
+    return res
+      .status(200)
+      .json({ token: jwtToken });
+
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ message: "Internal server error" });
+  }
+});
+
 
 
 app.get("/user-details", async (req, res) => {
