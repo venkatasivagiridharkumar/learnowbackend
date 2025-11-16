@@ -262,7 +262,7 @@ app.get("/user-details", async (req, res) => {
   }
 });
 
-app.post("/frontend-user-details", async (req, res) => {
+app.get("/frontend-user-details", async (req, res) => {
   try {
     const {username}=req.body;
     const sqlQuery = `SELECT * FROM user_details where username=?;`;
@@ -273,7 +273,7 @@ app.post("/frontend-user-details", async (req, res) => {
   }
 });
 
-app.post("/frontend-mentor-details",async(req,res)=>{
+app.get("/frontend-mentor-details",async(req,res)=>{
   try{
   const {username}=req.body;
   const sqlQuery=`select * from user inner join mentor on user.mentor_username=mentor.username where user.username=?;`;
