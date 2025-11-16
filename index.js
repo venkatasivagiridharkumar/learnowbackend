@@ -25,7 +25,6 @@ const InitializeDbAndServer = async () => {
 };
 
 
-
 app.get("/mentors-details", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM mentor;`;
@@ -66,7 +65,6 @@ app.post("/add-mentor", async (req, res) => {
 });
 
 
-
 app.get("/coding-questions", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM coding_questions;`;
@@ -79,7 +77,7 @@ app.get("/coding-questions", async (req, res) => {
 
 
 
-app.get("/frontend-coding-questions", async (req, res) => {
+app.get("/frontend-coding-questions",async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM coding_questions;`;
     const data = await db.all(sqlQuery);
@@ -123,7 +121,7 @@ app.get("/jobs", async (req, res) => {
 
 
 
-app.get("/frontend-jobs", async (req, res) => {
+app.get("/frontend-jobs",async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM jobs;`;
     const data = await db.all(sqlQuery);
@@ -238,29 +236,20 @@ app.post("/login", async (req, res) => {
     const { username, password } = req.body;
     const checkUserQuery = `select * from user where username = ?;`;
     const user = await db.get(checkUserQuery, [username]);
-
     if (!user) {
       return res.status(404).json({ message: "User does not exist" });
     }
-
     const passwordCheck = await bcrypt.compare(password, user.password);
 
     if (!passwordCheck) {
       return res.status(401).json({ message: "Invalid password" });
     }
-
-    const payLoad = { username };
-    const jwtToken = jwt.sign(payLoad, "Learnow Tech");
-
-    return res.status(200).json({ token: jwtToken });  // ✅ JSON response
+    return res.status(200).json(username);  
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
-
-
 
 
 app.get("/user-details", async (req, res) => {
@@ -273,10 +262,49 @@ app.get("/user-details", async (req, res) => {
   }
 });
 
+app.post("/frontend-user-details", async (req, res) => {
+  try {
+    const {username}=req.body;
+    const sqlQuery = `SELECT * FROM user_details where username=?;`;
+    const response = await db.get(sqlQuery,[username]);
+    res.send(response);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.post("/frontend-mentor-details",async(req,res)=>{
+  try{
+  const {username}=req.body;
+  const sqlQuery=`select * from user inner join mentor on user.mentor_username=mentor.username where user.username=?;`;
+
+  const response=await db.get(sqlQuery,[username]);
+  res.send(response);
+  }
+  catch(err){
+    res.send(err.message)
+  }
+})
 
 app.post("/update-user-details", async (req, res) => {
   try {
     const { username, full_name, address, phone, photo, highest_study, college, graduation_year, expertise } = req.body;
+    const sqlQuery = `
+      UPDATE user_details
+      SET full_name = ?, address = ?, phone = ?, photo = ?, highest_study = ?, college = ?, graduation_year = ?, expertise = ?
+      WHERE username = ?;
+    `;
+    await db.run(sqlQuery, [full_name, address, phone, photo, highest_study, college, graduation_year, expertise, username]);
+    res.send({ message: "User Details Updated Successfully." });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+app.post("/frontend-update-user-details", async (req, res) => {
+  try {
+    const {username}=req.body;
+    const {full_name, address, phone, photo, highest_study, college, graduation_year, expertise } = req.body;
     const sqlQuery = `
       UPDATE user_details
       SET full_name = ?, address = ?, phone = ?, photo = ?, highest_study = ?, college = ?, graduation_year = ?, expertise = ?

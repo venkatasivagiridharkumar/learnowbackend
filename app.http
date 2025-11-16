@@ -82,6 +82,16 @@ Content-Type: application/json
 GET http://localhost:3001/user-details
 
 ###
+POST http://localhost:3001/frontend-user-details
+Content-Type: application/json
+
+{
+  "username":"giridhar"
+}
+
+
+
+###
 POST http://localhost:3001/update-user-details
 Content-Type: application/json
 
@@ -128,4 +138,12 @@ Content-Type: application/json
 {
   "username":"giridhar",
   "password":"Giridhar@2004"
+}
+
+###
+POST http://localhost:3001/frontend-mentor-details
+Content-Type: application/json
+
+{
+  "username":"giridhar"
 }
