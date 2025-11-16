@@ -1,10 +1,10 @@
-// index.js
 const express = require("express");
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 const path = require("path");
 const cors=require("cors");
-
+const bcrypt=require("bcrypt");
+const jwt=require("jsonwebtoken");
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -24,6 +24,8 @@ const InitializeDbAndServer = async () => {
   }
 };
 
+
+
 app.get("/mentors-details", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM mentor;`;
@@ -33,6 +35,8 @@ app.get("/mentors-details", async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
+
+
 
 app.post("/add-mentor", async (req, res) => {
   try {
@@ -61,6 +65,8 @@ app.post("/add-mentor", async (req, res) => {
   }
 });
 
+
+
 app.get("/coding-questions", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM coding_questions;`;
@@ -71,6 +77,8 @@ app.get("/coding-questions", async (req, res) => {
   }
 });
 
+
+
 app.get("/frontend-coding-questions", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM coding_questions;`;
@@ -80,6 +88,8 @@ app.get("/frontend-coding-questions", async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
+
+
 
 app.post("/add-coding-question", async (req, res) => {
   try {
@@ -99,6 +109,8 @@ app.post("/add-coding-question", async (req, res) => {
   }
 });
 
+
+
 app.get("/jobs", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM jobs;`;
@@ -109,6 +121,8 @@ app.get("/jobs", async (req, res) => {
   }
 });
 
+
+
 app.get("/frontend-jobs", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM jobs;`;
@@ -118,6 +132,7 @@ app.get("/frontend-jobs", async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
+
 
 app.post("/add-jobs", async (req, res) => {
   try {
@@ -146,6 +161,8 @@ app.post("/add-jobs", async (req, res) => {
   }
 });
 
+
+
 app.delete("/delete-jobs/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -157,6 +174,8 @@ app.delete("/delete-jobs/:id", async (req, res) => {
   }
 });
 
+
+
 app.get("/users", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM user;`;
@@ -167,9 +186,11 @@ app.get("/users", async (req, res) => {
   }
 });
 
+
 app.post("/add-users", async (req, res) => {
   try {
     const { username, password, mentor_username } = req.body;
+    const hashedPassword=await bcrypt.hash(password,10);
     const checkQuery = `SELECT * FROM user WHERE username = ?;`;
     const existingUser = await db.get(checkQuery, [username]);
     if (existingUser) {
@@ -177,8 +198,7 @@ app.post("/add-users", async (req, res) => {
     }
 
     const sqlQuery1 = `INSERT INTO user (username, password, mentor_username) VALUES (?, ?, ?);`;
-    const userInsert = await db.run(sqlQuery1, [username, password, mentor_username]);
-
+    const userInsert = await db.run(sqlQuery1, [username, hashedPassword, mentor_username]);
     const {
       full_name = "",
       address = "",
@@ -212,6 +232,37 @@ app.post("/add-users", async (req, res) => {
   }
 });
 
+
+app.post("/login",async (req,res)=>{
+    try{
+      const {username,password}=req.body;
+      const checkUserQuery=`select* from user where username=?;`;
+      const user=await db.get(checkUserQuery,[username]);
+      if (user===undefined){
+        res.send("User Does Not Exists.")
+      }
+      else{
+        const passwordCheck=await bcrypt.compare(password,user.password)
+        if (passwordCheck){
+            const payLoad={username:username}
+            const jwtToken=jwt.sign(payLoad,"Learnow Tech");
+            res.send(jwtToken)
+        }
+        else{
+          res.send("invalid Password.")
+        }
+
+      }
+
+    }
+    catch(err){
+        res.send({message:err.message}) 
+    }
+
+
+})
+
+
 app.get("/user-details", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM user_details;`;
@@ -221,6 +272,7 @@ app.get("/user-details", async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
+
 
 app.post("/update-user-details", async (req, res) => {
   try {
@@ -236,5 +288,56 @@ app.post("/update-user-details", async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
+
+
+app.get("/announcements",async(req,res)=>{
+   try {
+    const sqlQuery = `SELECT * FROM announcements;`;
+    const response = await db.all(sqlQuery);
+    res.send(response);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+})
+
+
+app.get("/frontend-announcements",async(req,res)=>{
+   try {
+    const sqlQuery = `SELECT * FROM announcements;`;
+    const response = await db.all(sqlQuery);
+    res.send(response);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+})
+
+
+app.post("/add-announcements",async (req,res)=>{
+    try{
+      const {id,title,description,date,duration,time,link}=req.body;
+      const sqlQuery=`insert into announcements (id ,title,description,date,duration,time,link) values(?,?,?,?,?,?,?);`;
+      const response=await db.run(sqlQuery,[id,title,description,date,duration,time,link])
+      res.status(201).send({ message: "Announcement Added Successfully."});
+    }
+    catch(err){
+      res.status(500).send({error:err.message});
+    }
+})
+
+
+app.delete("/delete-announcements/:id",async (req,res)=>{
+   try{
+      const {id}=req.params; 
+      const sqlQuery=`delete from announcements where id=?;`;
+      const response=await db.run(sqlQuery,[id])
+      res.status(201).send({ message: "Announcement Deleted Successfully."});
+    }
+    catch(err){
+      res.status(500).send({error:err.message});
+    }
+})
+
+
+
 
 InitializeDbAndServer();

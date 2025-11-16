@@ -73,8 +73,8 @@ POST http://localhost:3001/add-users
 Content-Type: application/json
 
 {
-  "username":"mal143",
-  "password":"Mallesh@2004",
+  "username":"giridhar",
+  "password":"Giridhar@2004",
   "mentor_username":"Charan"
 }
 
@@ -95,4 +95,37 @@ Content-Type: application/json
   "college":"Siddharth Institute Of Engineering",
   "graduation_year":"2025",
   "expertise":"Java, Python"
+}
+
+###
+GET http://localhost:3001/announcements
+
+###
+GET http://localhost:3001/frontend-announcements
+
+###
+POST http://localhost:3001/add-announcements
+Content-Type: application/json
+
+{
+  "id":"1231",
+  "title":"Java Day2 Live",
+  "description":"Solve Coding Problems",
+  "date":"25/7/2004",
+  "duration":"2 hours",
+  "time":"8:00 PM",
+  "link":"https://googlemeet/"
+}
+
+
+###
+DELETE http://localhost:3001/delete-announcements/1234
+
+### 
+POST http://localhost:3001/login
+Content-Type: application/json
+
+{
+  "username":"giridhar",
+  "password":"Giridhar@2004"
 }
