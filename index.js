@@ -262,29 +262,51 @@ app.get("/user-details", async (req, res) => {
   }
 });
 
-app.get("/frontend-user-details", async (req, res) => {
+app.post("/frontend-user-details", async (req, res) => {
   try {
-    const {username}=req.body;
-    const sqlQuery = `SELECT * FROM user_details where username=?;`;
-    const response = await db.get(sqlQuery,[username]);
-    res.send(response);
+    const { username } = req.body;
+
+    const sqlQuery = `SELECT * FROM user_details WHERE username = ?;`;
+    const row = await db.get(sqlQuery, [username]);
+
+    if (!row) {
+      return res.status(404).json({ message: "User details not found" });
+    }
+
+    return res.json(row);
   } catch (err) {
-    res.status(500).send({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-app.get("/frontend-mentor-details",async(req,res)=>{
-  try{
-  const {username}=req.body;
-  const sqlQuery=`select * from user inner join mentor on user.mentor_username=mentor.username where user.username=?;`;
 
-  const response=await db.get(sqlQuery,[username]);
-  res.send(response);
+
+
+app.post("/frontend-mentor-details", async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    const sqlQuery = `
+      SELECT * FROM user 
+      INNER JOIN mentor ON user.mentor_username = mentor.username 
+      WHERE user.username = ?;
+    `;
+
+    const row = await db.get(sqlQuery, [username]);
+
+    if (!row) {
+      return res.status(404).json({ message: "Mentor not found for this user" });
+    }
+
+    return res.json(row);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
-  catch(err){
-    res.send(err.message)
-  }
-})
+});
+
+
 
 app.post("/update-user-details", async (req, res) => {
   try {
