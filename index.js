@@ -236,37 +236,30 @@ app.post("/add-users", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    const checkUserQuery = `SELECT * FROM user WHERE username = ?;`;
+    const checkUserQuery = `select * from user where username = ?;`;
     const user = await db.get(checkUserQuery, [username]);
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ message: "User does not exist" });
+      return res.status(404).json({ message: "User does not exist" });
     }
 
     const passwordCheck = await bcrypt.compare(password, user.password);
 
     if (!passwordCheck) {
-      return res
-        .status(401)
-        .json({ message: "Invalid password" });
+      return res.status(401).json({ message: "Invalid password" });
     }
 
-    const payload = { username };
-    const jwtToken = jwt.sign(payload, "Learnow Tech");
+    const payLoad = { username };
+    const jwtToken = jwt.sign(payLoad, "Learnow Tech");
 
-    return res
-      .status(200)
-      .json({ token: jwtToken });
-
+    // ✅ Send JSON with token
+    return res.status(200).json({ token: jwtToken });
   } catch (err) {
     console.error(err);
-    return res
-      .status(500)
-      .json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 
 
 
