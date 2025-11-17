@@ -6,9 +6,9 @@ POST http://localhost:3001/add-mentor
 Content-Type: application/json
 
 {
-  "username":"Charan",
-  "name":"Meda Sree Ram Charan",
-  "phone": "+91 9989550883",
+  "username":"mallesh",
+  "name":"Malleshwar Reddy",
+  "phone": "+91 9347202330",
   "Photo":"https://photo Id",
   "expertise":"Java, Python, SQL",
   "experience": 3,
@@ -73,9 +73,9 @@ POST http://localhost:3001/add-users
 Content-Type: application/json
 
 {
-  "username":"venky",
-  "password":"Venky@2004",
-  "mentor_username":"Charan"
+  "username":"yaswanth",
+  "password":"Yaswanth@2004",
+  "mentor_username":"charan"
 }
 
 ###
