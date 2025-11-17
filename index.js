@@ -157,7 +157,7 @@ app.delete("/delete-jobs/:id", async (req, res) => {
 
 app.get("/users", async (req, res) => {
   try {
-    const sqlQuery = `SELECT * FROM "user";`;
+    const sqlQuery = `SELECT * FROM users;`;
     const result = await pool.query(sqlQuery);
     res.send(result.rows);
   } catch (err) {
@@ -165,24 +165,29 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.post("/add-users", async (req, res) => {
+
+  app.post("/add-users", async (req, res) => {
   try {
     const { username, password, mentor_username } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const checkQuery = `SELECT * FROM "user" WHERE username = $1;`;
-    const existingUserResult = await pool.query(checkQuery, [username]);
-    if (existingUserResult.rows.length > 0) {
+    const checkQuery = `SELECT * FROM users WHERE username = $1;`;
+    const existingUser = await pool.query(checkQuery, [username]);
+    if (existingUser.rows.length > 0) {
       return res.status(400).send({ message: "Username already exists" });
     }
 
     const sqlQuery1 = `
-      INSERT INTO "user" (username, password, mentor_username)
+      INSERT INTO users (username, password, mentor_username)
       VALUES ($1, $2, $3)
-      RETURNING id;
+      RETURNING username;
     `;
-    const userInsert = await pool.query(sqlQuery1, [username, hashedPassword, mentor_username]);
-
+    const userInsert = await pool.query(sqlQuery1, [
+      username,
+      hashedPassword,
+      mentor_username,
+    ]);
+    
     const {
       full_name = "",
       address = "",
@@ -222,7 +227,7 @@ app.post("/add-users", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    const checkUserQuery = `SELECT * FROM "user" WHERE username = $1;`;
+    const checkUserQuery = `SELECT * FROM users WHERE username = $1;`;
     const result = await pool.query(checkUserQuery, [username]);
     const user = result.rows[0];
 
@@ -231,7 +236,6 @@ app.post("/login", async (req, res) => {
     }
 
     const passwordCheck = await bcrypt.compare(password, user.password);
-
     if (!passwordCheck) {
       return res.status(401).json({ message: "Invalid password" });
     }
@@ -242,6 +246,7 @@ app.post("/login", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 
 app.get("/user-details", async (req, res) => {
   try {
@@ -277,13 +282,12 @@ app.post("/frontend-mentor-details", async (req, res) => {
     const { username } = req.body;
 
     const sqlQuery = `
-      SELECT * FROM "user"
-      INNER JOIN mentor ON "user".mentor_username = mentor.username
-      WHERE "user".username = $1;
-    `;
-
-    const result = await pool.query(sqlQuery, [username]);
-    const row = result.rows[0];
+  SELECT * FROM users 
+  INNER JOIN mentor ON users.mentor_username = mentor.username 
+  WHERE users.username = $1;
+`;
+const rowResult = await pool.query(sqlQuery, [username]);
+const row = rowResult.rows[0];
 
     if (!row) {
       return res.status(404).json({ message: "Mentor not found for this user" });
