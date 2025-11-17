@@ -1,22 +1,18 @@
 require("dotenv").config();
-const pool = require("./db");
 const express = require("express");
-const { open } = require("sqlite");
-const sqlite3 = require("sqlite3");
-const path = require("path");
-const cors=require("cors");
-const bcrypt=require("bcrypt");
-const jwt=require("jsonwebtoken");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const pool = require("./db");
+
 const app = express();
 app.use(express.json());
 app.use(cors());
-const dbPath = path.join(__dirname, "learnow.db");
-let db = null;
-const connectionString = process.env.DATABASE_URL;
+
 
 const InitializeDbAndServer = async () => {
   try {
-    db = await open({ filename: dbPath, driver: sqlite3.Database });
+    await pool.query("SELECT 1");
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () => {
       console.log(`Server is running at http://localhost:${PORT}`);
@@ -31,23 +27,21 @@ const InitializeDbAndServer = async () => {
 app.get("/mentors-details", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM mentor;`;
-    const mentorDetails = await db.all(sqlQuery);
-    res.send(mentorDetails);
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
-
-
 
 app.post("/add-mentor", async (req, res) => {
   try {
     const { username, name, phone, photo, expertise, experience, bio, linkedIn } = req.body;
     const insertQuery = `
       INSERT INTO mentor (username, name, phone, photo, expertise, experience, bio, linkedin)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
     `;
-    const result = await db.run(insertQuery, [
+    await pool.query(insertQuery, [
       username,
       name,
       phone,
@@ -60,90 +54,79 @@ app.post("/add-mentor", async (req, res) => {
 
     res.status(201).send({
       message: "Mentor added successfully",
-      mentorId: result.lastID,
     });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
 app.get("/coding-questions", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM coding_questions;`;
-    const data = await db.all(sqlQuery);
-    res.send(data);
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
-
-app.get("/frontend-coding-questions",async (req, res) => {
+app.get("/frontend-coding-questions", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM coding_questions;`;
-    const data = await db.all(sqlQuery);
-    res.send(data);
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
-
-
 
 app.post("/add-coding-question", async (req, res) => {
   try {
     const { name, difficulty, link } = req.body;
     const insertQuery = `
       INSERT INTO coding_questions (name, difficulty, link)
-      VALUES (?, ?, ?);
+      VALUES ($1, $2, $3);
     `;
-    const result = await db.run(insertQuery, [name, difficulty, link]);
+    await pool.query(insertQuery, [name, difficulty, link]);
 
     res.status(201).send({
       message: "✅ Coding question added successfully",
-      questionId: result.lastID,
     });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
-
 app.get("/jobs", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM jobs;`;
-    const data = await db.all(sqlQuery);
-    res.send(data);
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
-
-app.get("/frontend-jobs",async (req, res) => {
+app.get("/frontend-jobs", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM jobs;`;
-    const data = await db.all(sqlQuery);
-    res.send(data);
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 app.post("/add-jobs", async (req, res) => {
   try {
-    const { id,company, role, link, ctc, description, technologies, location, last_date } = req.body;
+    const { id, company, role, link, ctc, description, technologies, location, last_date } = req.body;
     const sqlQuery = `
-      INSERT INTO jobs (id,company, role, link, ctc, description, technologies, location, last_date)
-      VALUES (?,?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO jobs (id, company, role, link, ctc, description, technologies, location, last_date)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
     `;
-    const response = await db.run(sqlQuery, [
-      id,company,
+    await pool.query(sqlQuery, [
+      id,
+      company,
       role,
       link,
       ctc,
@@ -155,51 +138,51 @@ app.post("/add-jobs", async (req, res) => {
 
     res.status(201).json({
       message: "Job added successfully",
-      id: response.lastID,
     });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
-
 app.delete("/delete-jobs/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const sqlQuery = `DELETE FROM jobs WHERE id = ?;`;
-    await db.run(sqlQuery, [id]);
+    const sqlQuery = `DELETE FROM jobs WHERE id = $1;`;
+    await pool.query(sqlQuery, [id]);
     res.json({ message: "Job deleted successfully", deletedId: id });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
-
 app.get("/users", async (req, res) => {
   try {
-    const sqlQuery = `SELECT * FROM user;`;
-    const response = await db.all(sqlQuery);
-    res.send(response);
+    const sqlQuery = `SELECT * FROM "user";`;
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
 app.post("/add-users", async (req, res) => {
   try {
     const { username, password, mentor_username } = req.body;
-    const hashedPassword=await bcrypt.hash(password,10);
-    const checkQuery = `SELECT * FROM user WHERE username = ?;`;
-    const existingUser = await db.get(checkQuery, [username]);
-    if (existingUser) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const checkQuery = `SELECT * FROM "user" WHERE username = $1;`;
+    const existingUserResult = await pool.query(checkQuery, [username]);
+    if (existingUserResult.rows.length > 0) {
       return res.status(400).send({ message: "Username already exists" });
     }
 
-    const sqlQuery1 = `INSERT INTO user (username, password, mentor_username) VALUES (?, ?, ?);`;
-    const userInsert = await db.run(sqlQuery1, [username, hashedPassword, mentor_username]);
+    const sqlQuery1 = `
+      INSERT INTO "user" (username, password, mentor_username)
+      VALUES ($1, $2, $3)
+      RETURNING id;
+    `;
+    const userInsert = await pool.query(sqlQuery1, [username, hashedPassword, mentor_username]);
+
     const {
       full_name = "",
       address = "",
@@ -213,9 +196,9 @@ app.post("/add-users", async (req, res) => {
 
     const sqlQuery2 = `
       INSERT INTO user_details (username, full_name, address, phone, photo, highest_study, college, graduation_year, expertise)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
     `;
-    const response = await db.run(sqlQuery2, [
+    await pool.query(sqlQuery2, [
       username,
       full_name,
       address,
@@ -227,39 +210,44 @@ app.post("/add-users", async (req, res) => {
       expertise,
     ]);
 
-    res.status(201).send({ message: "User Added Successfully.", userId: userInsert.lastID });
+    res.status(201).send({
+      message: "User Added Successfully.",
+      userId: userInsert.rows[0].id,
+    });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    const checkUserQuery = `select * from user where username = ?;`;
-    const user = await db.get(checkUserQuery, [username]);
+    const checkUserQuery = `SELECT * FROM "user" WHERE username = $1;`;
+    const result = await pool.query(checkUserQuery, [username]);
+    const user = result.rows[0];
+
     if (!user) {
       return res.status(404).json({ message: "User does not exist" });
     }
+
     const passwordCheck = await bcrypt.compare(password, user.password);
 
     if (!passwordCheck) {
       return res.status(401).json({ message: "Invalid password" });
     }
-    return res.status(200).json(username);  
+
+    return res.status(200).json(username);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-
 app.get("/user-details", async (req, res) => {
   try {
     const sqlQuery = `SELECT * FROM user_details;`;
-    const response = await db.all(sqlQuery);
-    res.send(response);
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
@@ -269,8 +257,9 @@ app.post("/frontend-user-details", async (req, res) => {
   try {
     const { username } = req.body;
 
-    const sqlQuery = `SELECT * FROM user_details WHERE username = ?;`;
-    const row = await db.get(sqlQuery, [username]);
+    const sqlQuery = `SELECT * FROM user_details WHERE username = $1;`;
+    const result = await pool.query(sqlQuery, [username]);
+    const row = result.rows[0];
 
     if (!row) {
       return res.status(404).json({ message: "User details not found" });
@@ -283,20 +272,18 @@ app.post("/frontend-user-details", async (req, res) => {
   }
 });
 
-
-
-
 app.post("/frontend-mentor-details", async (req, res) => {
   try {
     const { username } = req.body;
 
     const sqlQuery = `
-      SELECT * FROM user 
-      INNER JOIN mentor ON user.mentor_username = mentor.username 
-      WHERE user.username = ?;
+      SELECT * FROM "user"
+      INNER JOIN mentor ON "user".mentor_username = mentor.username
+      WHERE "user".username = $1;
     `;
 
-    const row = await db.get(sqlQuery, [username]);
+    const result = await pool.query(sqlQuery, [username]);
+    const row = result.rows[0];
 
     if (!row) {
       return res.status(404).json({ message: "Mentor not found for this user" });
@@ -309,17 +296,26 @@ app.post("/frontend-mentor-details", async (req, res) => {
   }
 });
 
-
-
 app.post("/update-user-details", async (req, res) => {
   try {
     const { username, full_name, address, phone, photo, highest_study, college, graduation_year, expertise } = req.body;
     const sqlQuery = `
       UPDATE user_details
-      SET full_name = ?, address = ?, phone = ?, photo = ?, highest_study = ?, college = ?, graduation_year = ?, expertise = ?
-      WHERE username = ?;
+      SET full_name = $1, address = $2, phone = $3, photo = $4, highest_study = $5,
+          college = $6, graduation_year = $7, expertise = $8
+      WHERE username = $9;
     `;
-    await db.run(sqlQuery, [full_name, address, phone, photo, highest_study, college, graduation_year, expertise, username]);
+    await pool.query(sqlQuery, [
+      full_name,
+      address,
+      phone,
+      photo,
+      highest_study,
+      college,
+      graduation_year,
+      expertise,
+      username,
+    ]);
     res.send({ message: "User Details Updated Successfully." });
   } catch (err) {
     res.status(500).send({ error: err.message });
@@ -328,69 +324,74 @@ app.post("/update-user-details", async (req, res) => {
 
 app.post("/frontend-update-user-details", async (req, res) => {
   try {
-    const {username}=req.body;
-    const {full_name, address, phone, photo, highest_study, college, graduation_year, expertise } = req.body;
+    const { username, full_name, address, phone, photo, highest_study, college, graduation_year, expertise } = req.body;
     const sqlQuery = `
       UPDATE user_details
-      SET full_name = ?, address = ?, phone = ?, photo = ?, highest_study = ?, college = ?, graduation_year = ?, expertise = ?
-      WHERE username = ?;
+      SET full_name = $1, address = $2, phone = $3, photo = $4, highest_study = $5,
+          college = $6, graduation_year = $7, expertise = $8
+      WHERE username = $9;
     `;
-    await db.run(sqlQuery, [full_name, address, phone, photo, highest_study, college, graduation_year, expertise, username]);
+    await pool.query(sqlQuery, [
+      full_name,
+      address,
+      phone,
+      photo,
+      highest_study,
+      college,
+      graduation_year,
+      expertise,
+      username,
+    ]);
     res.send({ message: "User Details Updated Successfully." });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
-app.get("/announcements",async(req,res)=>{
-   try {
+app.get("/announcements", async (req, res) => {
+  try {
     const sqlQuery = `SELECT * FROM announcements;`;
-    const response = await db.all(sqlQuery);
-    res.send(response);
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
-})
+});
 
-
-app.get("/frontend-announcements",async(req,res)=>{
-   try {
+app.get("/frontend-announcements", async (req, res) => {
+  try {
     const sqlQuery = `SELECT * FROM announcements;`;
-    const response = await db.all(sqlQuery);
-    res.send(response);
+    const result = await pool.query(sqlQuery);
+    res.send(result.rows);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
-})
+});
 
+app.post("/add-announcements", async (req, res) => {
+  try {
+    const { id, title, description, date, duration, time, link } = req.body;
+    const sqlQuery = `
+      INSERT INTO announcements (id, title, description, date, duration, time, link)
+      VALUES ($1, $2, $3, $4, $5, $6, $7);
+    `;
+    await pool.query(sqlQuery, [id, title, description, date, duration, time, link]);
+    res.status(201).send({ message: "Announcement Added Successfully." });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
 
-app.post("/add-announcements",async (req,res)=>{
-    try{
-      const {id,title,description,date,duration,time,link}=req.body;
-      const sqlQuery=`insert into announcements (id ,title,description,date,duration,time,link) values(?,?,?,?,?,?,?);`;
-      const response=await db.run(sqlQuery,[id,title,description,date,duration,time,link])
-      res.status(201).send({ message: "Announcement Added Successfully."});
-    }
-    catch(err){
-      res.status(500).send({error:err.message});
-    }
-})
-
-
-app.delete("/delete-announcements/:id",async (req,res)=>{
-   try{
-      const {id}=req.params; 
-      const sqlQuery=`delete from announcements where id=?;`;
-      const response=await db.run(sqlQuery,[id])
-      res.status(201).send({ message: "Announcement Deleted Successfully."});
-    }
-    catch(err){
-      res.status(500).send({error:err.message});
-    }
-})
-
-
+app.delete("/delete-announcements/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sqlQuery = `DELETE FROM announcements WHERE id = $1;`;
+    await pool.query(sqlQuery, [id]);
+    res.status(201).send({ message: "Announcement Deleted Successfully." });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
 
 
 InitializeDbAndServer();
