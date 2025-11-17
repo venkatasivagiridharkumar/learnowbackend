@@ -1,3 +1,5 @@
+require("dotenv").config();
+const pool = require("./db");
 const express = require("express");
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
@@ -10,6 +12,7 @@ app.use(express.json());
 app.use(cors());
 const dbPath = path.join(__dirname, "learnow.db");
 let db = null;
+const connectionString = process.env.DATABASE_URL;
 
 const InitializeDbAndServer = async () => {
   try {
